@@ -1,0 +1,3 @@
+[submodule "CommonLibrary"]
+	path = CommonLibrary
+	url = https://github.com/idanizri/SelfCalibratedRadarCommon.git
