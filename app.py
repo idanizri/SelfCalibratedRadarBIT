@@ -7,13 +7,13 @@ from CommonLibrary.Interfaces.interfaces import State
 from CommonLibrary.Interfaces.interfaces import Liveliness
 import requests
 import time
+import json
 
 st.header("Self Calibrated Radar BIT")
 
 # Open the configuration yaml file
 with open('CommonLibrary/configuration.yaml') as f:
     configuration = yaml.load(f, Loader=SafeLoader)
-
 
 def is_active(host, port):
     """
@@ -77,6 +77,9 @@ images = { 'active'  : on_button_data ,
 if 'processes_state' not in st.session_state:
     st.session_state.processes_state = { 'ASP': 'inactive', 'Ranker': 'inactive', 'Feeder': 'inactive' }
 
+if 'parameters' not in st.session_state:
+    st.session_state.parameters = {}
+
 processes = { 'ASP'   : { 'state'  : st.session_state.processes_state['ASP']                       ,
                           'caption': images[st.session_state.processes_state['ASP']]['description'],
                           'image'  : images[st.session_state.processes_state['ASP']]['image']
@@ -97,6 +100,9 @@ def check_activity(process):
     else:
         st.session_state.processes_state[process] ='inactive'
 
+def parameters_modifications():
+    print(st.session_state.parameters)
+
 
 cols = st.columns(3, gap='large')
 
@@ -107,6 +113,35 @@ for idx, key in enumerate( processes.keys() ):
                   caption = processes[key]['caption'],
                   width   = 200)
         
+st.header("System Parameters")
+
+st.subheader("ASP Parameters")
+
+# Use a callback to display the current value of the slider when changed
+def change_value(slider_key, destination):
+    st.session_state['parameters'][slider_key] = st.session_state[slider_key]
+    print(st.session_state['parameters'][slider_key])
+    
+    host = configuration[destination]['ip'] 
+    port = configuration[destination]['port']
+
+    url = "http://" + host + ":" + str(port) + "/modify_parameters"
+
+
+    result = json.dumps(st.session_state['parameters'])
+
+    my_json = 'parameters=' + result
+
+    x = requests.post(url,params= my_json)
+
+
+st.slider(
+    "Azimuth Difference Threshold"  , 0.0, 100.0, 60.0, step=1.0, key="az_diff_threshold"        , on_change=change_value,args=('az_diff_threshold'        ,'ASP') )
+st.slider(
+    "Elevation Difference Threshold", 0.0, 100.0, 40.0, step=1.0, key="el_diff_threshold"        , on_change=change_value,args=('az_diff_threshold'        ,'ASP') )
+st.slider(
+    "Time Until Target is Not Valid", 0.0, 60.0 , 2.0 , step=1.0, key="time_difference_threshold", on_change=change_value,args=('time_difference_threshold','ASP') )
+
 for process in processes.keys():
     check_activity(process)
 
