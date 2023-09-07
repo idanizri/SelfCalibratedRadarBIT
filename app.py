@@ -108,14 +108,17 @@ cols = st.columns(3, gap='large')
 
 for idx, key in enumerate( processes.keys() ):
     with cols[idx]:
-        st.header(key)
+        if key == 'ASP':
+            st.header('Server')
+        else:
+            st.header(key + "\n" )
         st.image( processes[key]['image'],
                   caption = processes[key]['caption'],
                   width   = 200)
         
 st.header("System Parameters")
 
-st.subheader("ASP Parameters")
+st.subheader("Simulator Server Parameters")
 
 # Use a callback to display the current value of the slider when changed
 def change_value(slider_key, destination):
@@ -135,14 +138,40 @@ def change_value(slider_key, destination):
     x = requests.post(url,params= my_json)
 
 
-st.slider(
-    "Azimuth Difference Threshold"  , 0.0, 100.0, 60.0, step=1.0, key="az_diff_threshold"        , on_change=change_value,args=('az_diff_threshold'        ,'ASP') )
-st.slider(
-    "Elevation Difference Threshold", 0.0, 100.0, 40.0, step=1.0, key="el_diff_threshold"        , on_change=change_value,args=('az_diff_threshold'        ,'ASP') )
-st.slider(
-    "Time Until Target is Not Valid", 0.0, 60.0 , 2.0 , step=1.0, key="time_difference_threshold", on_change=change_value,args=('time_difference_threshold','ASP') )
+st.slider("Azimuth Difference Threshold",
+           0.0, 100.0, 60.0, step=1.0, key="az_diff_threshold"        , on_change=change_value,args=('az_diff_threshold'        ,'ASP') )
+
+st.slider("Elevation Difference Threshold",
+           0.0, 100.0, 40.0, step=1.0, key="el_diff_threshold"        , on_change=change_value,args=('az_diff_threshold'        ,'ASP') )
+
+st.slider("Time Until Target is Not Valid",
+           0.0, 60.0 , 2.0 , step=1.0, key="time_difference_threshold", on_change=change_value,args=('time_difference_threshold','ASP') )
+
+st.slider("Adam Algorithm Number of Optimizer Steps",
+           0, 1000, 250, step=1, key="adam_num_of_optimizer_steps", on_change=change_value,args=('adam_num_of_optimizer_steps', 'ASP') )
+
+st.number_input("Optimizer Epsilon",
+                 value=0.00001, step=0.00001, format="%.5f", key="optimizer_epsilon", on_change=change_value,args=('optimizer_epsilon', 'ASP'))
+
+st.slider("Brute Force Algorithm Number Iterations",
+           0, 100, 1, step=1, key="brute_force_number_of_iterations", on_change=change_value,args=('brute_force_number_of_iterations', 'ASP') )
+
+brute_force_optimizer_type = ["snr", "gain"]
+st.selectbox( "Brute Force Algorithm Optimizer Type",
+              options=brute_force_optimizer_type, key="brute_force_optimizer_type", on_change=change_value,args=('brute_force_optimizer_type', 'ASP'),
+            )
+
+st.slider("Heuristic Algorithm Gain Threshold",
+           0.0, 1.0 , 0.01, step=0.01, key="heuristic_gain_threshold", on_change=change_value,args=('heuristic_gain_threshold','ASP') )
+
+st.slider("Heuristic Algorithm Phase Threshold",
+           0.0, 10.0 , 1.0, step=0.5, key="heuristic_phase_threshold", on_change=change_value,args=('heuristic_phase_threshold','ASP') )
+
+st.slider("Heuristic Algorithm Amount Of Beams",
+           0, 100 , 10, step=1, key="heuristic_number_of_beams", on_change=change_value,args=('heuristic_number_of_beams','ASP') )
 
 for process in processes.keys():
     check_activity(process)
+    time.sleep(1)
 
 st.experimental_rerun()
